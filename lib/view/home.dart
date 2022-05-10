@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gerenciadores_de_estado/blocs/contact_bloc.dart';
 import 'package:gerenciadores_de_estado/blocs/contact_event.dart';
 import 'package:gerenciadores_de_estado/blocs/contact_state.dart';
@@ -18,12 +19,12 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     bloc = ContactBloc();
-    bloc.inputContact.add(GetContactsEvent());
+    bloc.add(GetContactsEvent());
   }
 
   @override
   void dispose() {
-    bloc.inputContact.close();
+    bloc.close();
     super.dispose();
   }
 
@@ -36,10 +37,13 @@ class _HomeState extends State<Home> {
           "Contacts",
         ),
       ),
-      body: StreamBuilder<ContactState>(
-          stream: bloc.stream,
-          builder: (context1, AsyncSnapshot<ContactState> snapshot) {
-            final contacts = snapshot.data?.contacts ?? [];
+      body: BlocBuilder<ContactBloc, ContactState>(
+        bloc: bloc,
+        builder: (context1, state) {
+          if (state is ContactInitState) {
+            return Container();
+          } else {
+            final contacts = state.contacts;
             return ListView.builder(
                 padding: const EdgeInsets.all(8.0),
                 itemCount: contacts.length,
@@ -60,7 +64,7 @@ class _HomeState extends State<Home> {
                           ),
                           trailing: IconButton(
                             onPressed: () {
-                              bloc.inputContact.add(
+                              bloc.add(
                                 RemoveContact(contact: contacts[index]),
                               );
                             },
@@ -72,14 +76,16 @@ class _HomeState extends State<Home> {
                         ),
                       ),
                     )));
-          }),
+          }
+        },
+      ),
       floatingActionButton: FloatingActionButton(
           child: const Icon(Icons.add),
           onPressed: () {
             Navigator.push(
               context0,
               MaterialPageRoute(
-                  builder: ((context4) => NewContact(
+                  builder: ((context3) => NewContact(
                         bloc: bloc,
                       ))),
             );

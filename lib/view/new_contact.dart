@@ -81,7 +81,7 @@ class _NewContactState extends State<NewContact> {
                       email: email.text,
                       phone: phone.text,
                     );
-                    widget.bloc.inputContact.add(
+                    widget.bloc.add(
                       AddContactEvent(contact: contact),
                     );
                     Navigator.pop(context);

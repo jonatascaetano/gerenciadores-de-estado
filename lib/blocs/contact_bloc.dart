@@ -1,39 +1,22 @@
-import 'dart:async';
-
 import 'package:gerenciadores_de_estado/blocs/contact_event.dart';
 import 'package:gerenciadores_de_estado/blocs/contact_state.dart';
-import 'package:gerenciadores_de_estado/model/contact.dart';
 
 import '../repository/contact_repository.dart';
+import 'package:bloc/bloc.dart';
 
-class ContactBloc {
+class ContactBloc extends Bloc<ContactEvent, ContactState> {
   final _contactRepository = ContactRepository();
 
-  final StreamController<ContactEvent> _inputContactController =
-      StreamController<ContactEvent>();
+  ContactBloc() : super(ContactInitState()) {
+    on<GetContactsEvent>(((event, emit) async => emit(ContactSuccessState(
+        contacts: await _contactRepository.getContacts()))));
 
-  final StreamController<ContactState> _outputContactController =
-      StreamController<ContactState>();
+    on<AddContactEvent>((event, emit) async => emit(ContactSuccessState(
+        contacts:
+            await _contactRepository.addContact(contact: event.contact))));
 
-  Sink<ContactEvent> get inputContact => _inputContactController.sink;
-  Stream<ContactState> get stream => _outputContactController.stream;
-
-  ContactBloc() {
-    _inputContactController.stream.listen(_mapEventToState);
-  }
-
-  _mapEventToState(ContactEvent contactEvent) async {
-    List<Contact> contacts = [];
-    if (contactEvent is GetContactsEvent) {
-      contacts = await _contactRepository.getContacts();
-    } else if (contactEvent is AddContactEvent) {
-      contacts =
-          await _contactRepository.addContact(contact: contactEvent.contact);
-    } else if (contactEvent is RemoveContact) {
-      contacts =
-          await _contactRepository.removeContact(contact: contactEvent.contact);
-    }
-
-    _outputContactController.add(ContactSuccessState(contacts: contacts));
+    on<RemoveContact>((event, emit) async => emit(ContactSuccessState(
+        contacts:
+            await _contactRepository.removeContact(contact: event.contact))));
   }
 }
